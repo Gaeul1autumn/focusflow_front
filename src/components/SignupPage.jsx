@@ -1,4 +1,3 @@
-// SignupPage.jsx
 import React, { useState } from 'react';
 
 function SignupPage({ onBack }) {
@@ -14,10 +13,10 @@ function SignupPage({ onBack }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = () => {
-    // 간단한 유효성 검사
-    if (!formData.username || !formData.password) {
-      alert('아이디와 비밀번호를 입력해주세요.');
+  const handleSubmit = async () => {
+    // 1. 간단한 유효성 검사
+    if (!formData.username || !formData.password || !formData.nickname) {
+      alert('모든 필드를 입력해주세요.');
       return;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -25,12 +24,34 @@ function SignupPage({ onBack }) {
       return;
     }
 
-    // 💡 여기에 실제 백엔드 회원가입 API 호출 로직이 들어갑니다.
-    console.log('회원가입 정보:', formData);
-    alert(`환영합니다, ${formData.nickname || formData.username}님! 회원가입이 완료되었습니다.`);
-    
-    // 가입 완료 후 로그인 페이지로 이동
-    onBack();
+    // 2. ✨ 백엔드 API 호출 (회원가입 요청) //FIXME: 로컬 호스트 수정
+    try {
+        const response = await fetch('http://localhost:8080/api/auth/signup', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({
+                username: formData.username,
+                password: formData.password,
+                nickname: formData.nickname
+            })
+        });
+
+        if (response.ok) {
+            // 성공 시
+            alert(`환영합니다, ${formData.nickname}님! 회원가입이 완료되었습니다.\n로그인 페이지로 이동합니다.`);
+            onBack(); // 로그인 화면으로 전환
+        } else {
+            // 실패 시 (예: 중복된 아이디 등)
+            const errorMsg = await response.text();
+            alert(`회원가입 실패: ${errorMsg}`);
+        }
+
+    } catch (error) {
+        console.error("회원가입 에러:", error);
+        alert('서버 연결에 실패했습니다. 백엔드가 실행 중인지 확인해주세요.');
+    }
   };
 
   return (
@@ -49,7 +70,7 @@ function SignupPage({ onBack }) {
         <input 
           type="text" 
           name="nickname"
-          placeholder="닉네임" 
+          placeholder="닉네임 (화면에 표시될 이름)" 
           value={formData.nickname}
           onChange={handleChange}
           style={{ padding: '12px', border: '1px solid #ddd', borderRadius: '5px' }} 

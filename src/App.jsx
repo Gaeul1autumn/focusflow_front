@@ -1,102 +1,268 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Timer from './components/Timer';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
-
-// To-Do 데이터 모델 예시 (백엔드 연동 전 Mock Data)
-const initialTasks = [
-  { id: 1, title: 'Spring Boot API 설계 및 구현', completed: false, isFocusing: false, focusSessions: 0 },
-  { id: 2, title: 'React 디자인 디테일 개선', completed: false, isFocusing: true, focusSessions: 1 },
-  { id: 3, title: 'DB 모델링 완료', completed: true, isFocusing: false, focusSessions: 2 },
-];
+import StatsPage from './components/StatsPage';
 
 function App() {
-  const [tasks, setTasks] = useState(initialTasks);
+  // 로그인한 유저 정보 (null이면 비로그인)
+  const [currentUser, setCurrentUser] = useState(null);
+  
+  const [tasks, setTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [currentView, setCurrentView] = useState('home');
   
-  // 사용자가 설정할 시간 상태 (초 단위로 관리)
   const [settings, setSettings] = useState({
-    focusTime: 40 * 60,   // 40분 기본값
-    shortBreak: 10 * 60,  // 10분 기본값
-    longBreak: 20 * 60,   // 20분 기본값
-    sessionCycle: 4,      // 4세션 주기
+    focusTime: 40 * 60,   
+    shortBreak: 10 * 60,  
+    longBreak: 20 * 60,   
+    sessionCycle: 4,      
   });
   
-  const [currentFocusTask, setCurrentFocusTask] = useState(
-      initialTasks.find(task => task.isFocusing) || null
-  );
+  const [currentFocusTask, setCurrentFocusTask] = useState(null);
 
-  // 설정 UI 핸들러
+  // ---------------------------------------------------------
+  // 1. [초기화] 세션 확인 + 데이터 로딩 + 자정 초기화
+  // ---------------------------------------------------------
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // A. [초기화 로직 수정] 현재 시간에서 4시간을 뺀 날짜를 구함
+        const now = new Date();
+        now.setHours(now.getHours() - 4); // 4시간 뒤로 감기
+        
+        const today = now.toLocaleDateString(); // 예: "2025. 11. 23." (새벽 3시면 어제 날짜가 됨)
+        const lastRunDate = localStorage.getItem('lastRunDate');
+
+        if (lastRunDate !== today) {
+            console.log(`🌙 새벽 4시 기준 날짜 변경! (${lastRunDate} -> ${today}) 완료 목록을 비웁니다.`);
+            localStorage.removeItem('completedTasks');
+            localStorage.setItem('lastRunDate', today);
+        }
+
+        // B. [세션 체크] 새로고침 해도 로그인 유지
+        const sessionRes = await fetch('http://localhost:8080/api/auth/check-session', {
+            method: 'GET',
+            credentials: 'include' // 세션 쿠키 전송 필수
+        });
+
+        let activeUser = null;
+        if (sessionRes.ok) {
+            const userData = await sessionRes.json();
+            setCurrentUser(userData); // { username: "...", nickname: "..." }
+            activeUser = userData.username;
+            console.log(`환영합니다, ${userData.nickname}님!`);
+        }
+
+        // C. [데이터 로딩] 로그인 상태라면 DB 데이터 가져오기
+        if (activeUser) {
+            // 1. DB에서 '진행 중인 할 일' 가져오기
+            const taskRes = await fetch(`http://localhost:8080/api/tasks/${activeUser}`, {
+                credentials: 'include'
+            });
+            
+            if (taskRes.ok) {
+                const dbTasks = await taskRes.json();
+                // DB 데이터에 UI용 필드 병합
+                const activeTasks = dbTasks.map(t => ({
+                    ...t,
+                    isFocusing: false,
+                    focusSessions: t.focusSessions || 0 
+                }));
+
+                // 2. 로컬 스토리지에서 '완료된 할 일' 가져오기
+                const localCompletedTasks = JSON.parse(localStorage.getItem('completedTasks') || '[]');
+
+                // 3. 병합
+                setTasks([...activeTasks, ...localCompletedTasks]);
+            }
+        }
+
+      } catch (error) {
+        console.error("초기화 중 에러:", error);
+      }
+    };
+
+    initializeApp();
+  }, []); // 마운트 시 1회 실행
+
+  // ---------------------------------------------------------
+  // 2. [로그아웃]
+  // ---------------------------------------------------------
+  const handleLogout = async () => {
+    try {
+        await fetch('http://localhost:8080/api/auth/logout', { 
+            method: 'POST', credentials: 'include' 
+        });
+        setCurrentUser(null);
+        setTasks([]); 
+        setCurrentFocusTask(null);
+        setCurrentView('login');
+    } catch (e) { console.error(e); }
+  };
+
+  // ---------------------------------------------------------
+  // [헬퍼] 로컬 스토리지 저장 (UI 유지용)
+  // ---------------------------------------------------------
+  const saveToLocal = (task) => {
+    const completedTask = { ...task, completed: true, isFocusing: false };
+    const currentSaved = JSON.parse(localStorage.getItem('completedTasks') || '[]');
+    
+    if (!currentSaved.find(t => t.id === task.id)) {
+        const newSaved = [...currentSaved, completedTask];
+        localStorage.setItem('completedTasks', JSON.stringify(newSaved));
+    }
+  };
+
   const handleSettingsChange = (e) => {
     const { name, value } = e.target;
     if (parseInt(value) <= 0) return;
-    
-    // 입력된 분(minute)을 초(second)로 변환하여 저장
     setSettings(prev => ({ ...prev, [name]: parseInt(value) * 60 }));
   };
 
-  // 할 일 추가 함수
-  const addTaskHandler = () => {
-    if (newTaskTitle.trim() === '') return;
+  // ---------------------------------------------------------
+  // 3. [할 일 추가] DB 저장
+  // ---------------------------------------------------------
+  const addTaskHandler = async () => {
+    if (newTaskTitle.trim() === '' || !currentUser) return;
 
-    const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-    
-    const newTask = {
-      id: newId,
-      title: newTaskTitle.trim(),
-      completed: false,
-      isFocusing: false,
-      focusSessions: 0,
-    };
+    console.log("버튼 눌림!");
+    console.log("입력값:", newTaskTitle);
+    console.log("유저정보:", currentUser);
 
-    setTasks(prevTasks => [...prevTasks, newTask]);
-    setNewTaskTitle('');
+    try {
+      const response = await fetch('http://localhost:8080/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ 
+            userId: currentUser.username, // 실제 로그인 ID
+            title: newTaskTitle 
+        })
+      });
+      
+      if (response.ok) {
+        const savedTask = await response.json();
+        const newTask = {
+          id: savedTask.id, // MongoDB ObjectId
+          title: savedTask.title,
+          completed: false,
+          isFocusing: false,
+          focusSessions: 0,
+        };
+        setTasks(prev => [...prev, newTask]);
+        setNewTaskTitle('');
+      }
+    } catch (error) {
+      console.error("할 일 추가 실패:", error);
+    }
   };
   
-  // Task에 포커스를 시작/전환하는 핸들러
   const handleStartFocusing = (taskId) => {
     setTasks(prevTasks => prevTasks.map(task => {
+      if (task.completed) return task;
       const isNewFocus = task.id === taskId;
-      if (isNewFocus) {
-        setCurrentFocusTask({ ...task, isFocusing: true });
-      }
+      if (isNewFocus) setCurrentFocusTask({ ...task, isFocusing: true });
       return { ...task, isFocusing: isNewFocus };
     }));
   };
 
-  // 타이머 세션이 완료되었을 때 호출되는 핸들러 (FocusSessions 증가)
-  const handleSessionComplete = (taskId) => {
-    // 💡 나중에 이 부분이 Spring Boot API 호출(POST /api/tasks/{id}/focus/complete)로 대체됩니다.
-    
-    setTasks(prevTasks => prevTasks.map(task => {
-        if (task.id === taskId) {
-            const updatedTask = { ...task, focusSessions: task.focusSessions + 1 };
-            setCurrentFocusTask(updatedTask); 
-            return updatedTask;
-        }
-        return task;
-    }));
-    // alert(`🎉 ${currentFocusTask.title} 작업에 대한 집중 세션이 1회 완료되었습니다!`);
+  // ---------------------------------------------------------
+  // 4. [세션 완료] 통계 저장 + 사이클 달성 시 DB 삭제
+  // ---------------------------------------------------------
+  const handleSessionComplete = async (taskId) => {
+    if (!currentUser) return;
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const currentSessions = (task.focusSessions || 0) + 1;
+    const isCycleFinished = currentSessions % settings.sessionCycle === 0; 
+
+    // A. 일별 통계 저장
+    try {
+        await fetch(`http://localhost:8080/api/stats/${currentUser.username}/daily`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ 
+                addSeconds: settings.focusTime, 
+                isSessionComplete: true 
+            }) 
+        });
+    } catch (error) { console.error("통계 저장 실패:", error); }
+
+    // B. 사이클 종료 여부 분기
+    if (isCycleFinished) {
+        // 목표 달성 -> DB 삭제 + 로컬 저장
+        try {
+            await fetch(`http://localhost:8080/api/tasks/${taskId}`, { 
+                method: 'DELETE', credentials: 'include' 
+            });
+        } catch (e) { console.error(e); }
+
+        saveToLocal({ ...task, focusSessions: currentSessions });
+
+        setTasks(prev => prev.map(t => 
+            t.id === taskId 
+                ? { ...t, focusSessions: currentSessions, completed: true, isFocusing: false } 
+                : t
+        ));
+        setCurrentFocusTask(null);
+
+    } else {
+        // 계속 진행 -> 세션 수만 증가
+        setTasks(prev => prev.map(t => 
+            t.id === taskId ? { ...t, focusSessions: currentSessions } : t
+        ));
+        setCurrentFocusTask(prev => ({ ...prev, focusSessions: currentSessions }));
+
+        // ✨ 2. [추가] DB에도 세션 횟수 업데이트 요청 (새로고침 유지용)
+        try {
+            await fetch(`http://localhost:8080/api/tasks/${taskId}/session`, {
+                method: 'PATCH',
+                credentials: 'include'
+            });
+        } catch (e) { console.error("세션 카운트 저장 실패", e); }
+    }
   };
 
-  // (Timer 컴포넌트의 onManualComplete prop으로 전달됨)
-  const handleManualTaskCompletion = (totalSeconds) => {
-    if (!currentFocusTask) return;
-
+  // ---------------------------------------------------------
+  // 5. [수동 완료] 통계 저장 + DB 삭제 + 로컬 저장
+  // ---------------------------------------------------------
+  const handleManualTaskCompletion = async (totalSeconds) => {
+    if (!currentFocusTask || !currentUser) return;
     const taskId = currentFocusTask.id;
-    const minutes = Math.floor(totalSeconds / 60);
-    console.log(`DB 저장 요청: [${currentFocusTask.title}] 총 ${minutes}분 (${totalSeconds}초)`);
+    const currentTaskObj = tasks.find(t => t.id === taskId);
 
-    // 1. 태스크 상태 업데이트 (완료 처리)
-    setTasks(prevTasks => prevTasks.map(task => 
-      task.id === taskId 
-        ? { ...task, completed: true, isFocusing: false } // 완료됨 표시, 포커스 해제
-        : task
+    // A. 통계 저장
+    if (totalSeconds > 0) {
+        try {
+            await fetch(`http://localhost:8080/api/stats/${currentUser.username}/daily`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                    addSeconds: totalSeconds, 
+                    isSessionComplete: false 
+                }) 
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    // B. DB 삭제
+    try {
+        await fetch(`http://localhost:8080/api/tasks/${taskId}`, { 
+            method: 'DELETE', credentials: 'include'
+        });
+    } catch (error) { console.error("삭제 실패:", error); }
+
+    // C. 로컬 저장 & UI 업데이트
+    if (currentTaskObj) saveToLocal(currentTaskObj);
+
+    setTasks(prev => prev.map(t => 
+      t.id === taskId ? { ...t, completed: true, isFocusing: false } : t
     ));
-
-    // 2. 현재 포커스 작업 해제 (타이머 화면 닫기)
     setCurrentFocusTask(null);
   };
 
@@ -106,40 +272,35 @@ function App() {
         return (
           <LoginPage 
             onBack={() => setCurrentView('home')} 
-            onGoSignup={() => setCurrentView('signup')} // ✨ 회원가입 화면으로 이동
+            onGoSignup={() => setCurrentView('signup')}
+            onLoginSuccess={(user) => {
+                setCurrentUser(user);
+                setCurrentView('home');
+                window.location.reload(); // 데이터 로딩을 위해 새로고침
+            }}
           />
         );
       case 'signup':
+        return <SignupPage onBack={() => setCurrentView('login')} />;
+      case 'stats':
         return (
-          <SignupPage 
-            onBack={() => setCurrentView('login')} // ✨ 가입 취소/완료 시 로그인 화면으로 복귀
+          <StatsPage 
+            currentUser={currentUser} 
+            onBack={() => setCurrentView('home')} // 뒤로가기 누르면 홈으로
           />
         );
       case 'home':
       default:
         return (
           <>
-           {/* 기존 메인 대시보드 내용 */}
            <div className="settings-input-container">
-             <label>집중 (분): 
-                <input type="number" name="focusTime" value={settings.focusTime / 60} onChange={handleSettingsChange} min="1"/>
-            </label>
-            <label>휴식 (분): 
-                <input type="number" name="shortBreak" value={settings.shortBreak / 60} onChange={handleSettingsChange} min="1"/>
-            </label>
-             <label>주기 (회): 
-                <input type="number" name="sessionCycle" value={settings.sessionCycle} onChange={(e) => setSettings(prev => ({ ...prev, sessionCycle: parseInt(e.target.value) }))} min="1"/>
-            </label>
+             <label>집중 (분): <input type="number" name="focusTime" value={settings.focusTime / 60} onChange={handleSettingsChange} min="1"/></label>
+             <label>휴식 (분): <input type="number" name="shortBreak" value={settings.shortBreak / 60} onChange={handleSettingsChange} min="1"/></label>
+             <label>주기 (회): <input type="number" name="sessionCycle" value={settings.sessionCycle} onChange={(e) => setSettings(prev => ({ ...prev, sessionCycle: parseInt(e.target.value) }))} min="1"/></label>
            </div>
-           {/* ... Task Input, Main Content Area 등등 ... */}
 
           <div className="task-input-section">
-            <input
-              type="text"
-              placeholder="새로운 할 일 입력..."
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-            />
+            <input type="text" placeholder="새로운 할 일 입력..." value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} />
             <button onClick={addTaskHandler}>추가</button>
           </div>
 
@@ -148,24 +309,10 @@ function App() {
               <h2>할 일 목록</h2>
               <div className="task-list">
                 {tasks.map(task => (
-                    <div 
-                        key={task.id} 
-                        className={`task-item ${task.isFocusing ? 'focusing' : ''} ${task.completed ? 'completed-task' : ''}`}
-                        style={{ opacity: task.completed ? 0.6 : 1 }} // 완료된 태스크 흐리게 처리
-                    >
-                        <span 
-                            className="task-title"
-                            style={{ textDecoration: task.completed ? 'line-through' : 'none' }} // 완료 시 취소선
-                        >
-                            {task.title}
-                        </span>
-                        <span className="task-sessions">🔥 {task.focusSessions}</span>
-                        
-                        {!task.completed && (
-                            <button onClick={() => handleStartFocusing(task.id)}>
-                                {task.isFocusing ? '포커스 중' : '시작'}
-                            </button>
-                        )}
+                    <div key={task.id} className={`task-item ${task.isFocusing ? 'focusing' : ''} ${task.completed ? 'completed-task' : ''}`} style={{ opacity: task.completed ? 0.6 : 1 }}>
+                        <span className="task-title" style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>{task.title}</span>
+                        <span className="task-sessions">🔥 {task.focusSessions || 0}</span>
+                        {!task.completed && <button onClick={() => handleStartFocusing(task.id)}>{task.isFocusing ? '포커스 중' : '시작'}</button>}
                         {task.completed && <span>✅</span>}
                     </div>
                 ))}
@@ -173,55 +320,52 @@ function App() {
             </div>
 
             <div className="timer-section">
-              {/* Timer에 onManualComplete prop 전달 */}
               <Timer 
                   currentFocusTask={currentFocusTask} 
                   onSessionComplete={handleSessionComplete} 
                   settings={settings}
-                  onManualComplete={handleManualTaskCompletion} // ✨ 추가됨
+                  onManualComplete={handleManualTaskCompletion} 
               />
             </div>
-
           </div>
-
           </>
         );
     }
   };
 
-
   return (
     <div className="app-container">
-      {/* ⭐️ 헤더 영역 수정: Flexbox 적용 및 로그인 버튼 추가 */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 
-            onClick={() => setCurrentView('home')} 
-            style={{ margin: 0, cursor: 'pointer' }}
-        >
-            FocusFlow 🚀
-        </h1>
+        <h1 onClick={() => setCurrentView('home')} style={{ margin: 0, cursor: 'pointer' }}>FocusFlow 🚀</h1>
         
-        {/* 로그인 화면이 아닐 때만 버튼 표시 */}
-        {currentView !== 'login' && (
-            <button 
-                onClick={() => setCurrentView('login')}
-                style={{ 
-                    padding: '8px 16px', 
-                    borderRadius: '20px', 
-                    border: 'none', 
-                    background: '#3498db', 
-                    color: 'white', 
-                    cursor: 'pointer' 
-                }}
-            >
-                로그인
-            </button>
+        {currentUser ? (
+            <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
+                {/* ✨ [추가] 통계 버튼 (홈 화면일 때만 표시) */}
+                {currentView === 'home' && (
+                    <button 
+                        onClick={() => setCurrentView('stats')}
+                        style={{ padding: '8px 12px', background: '#f1c40f', color: 'white', border:'none', borderRadius:'5px', cursor:'pointer', fontWeight:'bold' }}
+                    >
+                        📊 통계
+                    </button>
+                )}
+                
+                <span style={{color: '#555'}}><b>{currentUser.nickname}</b>님</span>
+                <button onClick={handleLogout} style={{padding: '5px 10px', fontSize: '0.8em', background: '#e74c3c', color: 'white', border:'none', borderRadius:'5px', cursor:'pointer'}}>로그아웃</button>
+            </div>
+        ) : (
+             currentView !== 'login' && <button onClick={() => setCurrentView('login')} style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', background: '#3498db', color: 'white', cursor: 'pointer' }}>로그인</button>
         )}
       </header>
       
-      {/* ⭐️ 조건부 렌더링 실행 */}
-      {renderContent()}
-
+      {/* 로그인 상태가 아닐 때 홈 화면 접근 제한 (선택적) */}
+      {!currentUser && currentView === 'home' ? (
+          <div style={{textAlign:'center', padding:'50px'}}>
+              <h2>로그인이 필요합니다 🔒</h2>
+              <p style={{color:'#666', marginBottom:'20px'}}>로그인하여 나만의 집중 기록을 관리해보세요!</p>
+              <button onClick={()=>setCurrentView('login')} style={{padding:'10px 20px', background:'#3498db', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontSize:'16px'}}>로그인 하러가기</button>
+          </div>
+      ) : renderContent()}
     </div>
   );
 }

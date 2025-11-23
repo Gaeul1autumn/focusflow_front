@@ -141,17 +141,20 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
 
 
   const handleMiddleCompletion = useCallback(() => {
+
+    let secondsToAdd = 0;
     let totalCompletedSeconds = sessionCount * focusTime;
 
     // 현재 '집중' 세션 진행 중이었다면, 현재까지 진행한 시간도 더함
     if (isFocusing) {
       const currentFocusProgress = focusTime - secondsLeft;
       totalCompletedSeconds += currentFocusProgress;
+      secondsToAdd = focusTime - secondsLeft;
     }
 
     // 1. (중요) 부모 컴포넌트로 총 완료 시간(초)을 전달
     if (onManualComplete) {
-      onManualComplete(totalCompletedSeconds); 
+      onManualComplete(secondsToAdd); 
     }
 
     // 2. 사용자에게 알림
