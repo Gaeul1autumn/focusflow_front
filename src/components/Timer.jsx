@@ -47,6 +47,18 @@ const showAutoDismissMessage = (message) => {
   }, 3000);
 };
 
+// 세션 완료시 화면 깜빡임을 위한 function
+const triggerScreenFlash = () => { 
+  const overlay = document.createElement('div');
+  overlay.className = 'flash-overlay';
+  document.body.appendChild(overlay);
+
+  // 애니메이션 시간(1.5s) 후 제거
+  setTimeout(() => {
+    document.body.removeChild(overlay);
+  }, 2000);
+};
+
 // ----------------------------------------------------
 
 function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete }) {
@@ -100,6 +112,8 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
     const newCount = wasFocusing ? sessionCount + 1 : sessionCount;
 
     if (wasFocusing) {
+      triggerScreenFlash(); // 함수 호출해서 깜빡임 효과 주기
+
       setSessionCount(newCount);
       onSessionComplete(currentFocusTask.id);
 
