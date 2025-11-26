@@ -38,7 +38,11 @@ function App() {
 
         if (lastRunDate !== today) {
             console.log(`🌙 새벽 4시 기준 날짜 변경! (${lastRunDate} -> ${today}) 완료 목록을 비웁니다.`);
-            localStorage.removeItem('completedTasks');
+            Object.keys(localStorage).forEach(key => { // 돌면서 모든 데이터 삭제 4시 기준으로 
+                if (key.startsWith('completedTasks_')) {
+                    localStorage.removeItem(key);
+                }
+            });
             localStorage.setItem('lastRunDate', today);
         }
 
@@ -71,9 +75,10 @@ function App() {
                     isFocusing: false,
                     focusSessions: t.focusSessions || 0 
                 }));
-
+                
+                const userKey = `completedTasks_${activeUser}`; // 데이터 가져 올 때도 해당 계정 데이터만 가져오도록 변경
                 // 2. 로컬 스토리지에서 '완료된 할 일' 가져오기
-                const localCompletedTasks = JSON.parse(localStorage.getItem('completedTasks') || '[]');
+                const localCompletedTasks = JSON.parse(localStorage.getItem(userKey) || '[]');
 
                 // 3. 병합
                 setTasks([...activeTasks, ...localCompletedTasks]);
@@ -106,13 +111,15 @@ function App() {
   // ---------------------------------------------------------
   // [헬퍼] 로컬 스토리지 저장 (UI 유지용)
   // ---------------------------------------------------------
-  const saveToLocal = (task) => {
+  const saveToLocal = (task, username) => {
+    const key = `completedTasks_${username}`; // 계정별로 구분 하기 위함 
+
     const completedTask = { ...task, completed: true, isFocusing: false };
-    const currentSaved = JSON.parse(localStorage.getItem('completedTasks') || '[]');
+    const currentSaved = JSON.parse(localStorage.getItem(key) || '[]');
     
     if (!currentSaved.find(t => t.id === task.id)) {
         const newSaved = [...currentSaved, completedTask];
-        localStorage.setItem('completedTasks', JSON.stringify(newSaved));
+        localStorage.setItem(key, JSON.stringify(newSaved));
     }
   };
 
@@ -202,7 +209,7 @@ function App() {
             });
         } catch (e) { console.error(e); }
 
-        saveToLocal({ ...task, focusSessions: currentSessions });
+        saveToLocal({ ...task, focusSessions: currentSessions }, currentUser.username);
 
         setTasks(prev => prev.map(t => 
             t.id === taskId 
@@ -259,7 +266,7 @@ function App() {
     } catch (error) { console.error("삭제 실패:", error); }
 
     // C. 로컬 저장 & UI 업데이트
-    if (currentTaskObj) saveToLocal(currentTaskObj);
+    if (currentTaskObj) saveToLocal(currentTaskObj, currentUser.username);
 
     setTasks(prev => prev.map(t => 
       t.id === taskId ? { ...t, completed: true, isFocusing: false } : t
