@@ -4,6 +4,7 @@ import Timer from './components/Timer';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import StatsPage from './components/StatsPage';
+import RankingPage from './components/RankingPage';
 
 function App() {
   // 로그인한 유저 정보 (null이면 비로그인)
@@ -289,6 +290,8 @@ function App() {
             onBack={() => setCurrentView('home')} // 뒤로가기 누르면 홈으로
           />
         );
+      case 'ranking': //랭킹 서비스
+        return <RankingPage onBack={() => setCurrentView('home')} />;
       case 'home':
       default:
         return (
@@ -340,21 +343,26 @@ function App() {
         
         {currentUser ? (
             <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
-                {/* ✨ [추가] 통계 버튼 (홈 화면일 때만 표시) */}
+                {/* 통계 버튼 (홈 화면일 때만 표시) */}
                 {currentView === 'home' && (
+                  <>
+                    <button onClick={() => setCurrentView('ranking')} style={{ padding: '8px 12px', background: '#64afedff', color: 'white', border:'none', borderRadius:'5px', cursor:'pointer', fontWeight:'bold' }}>
+                            🏆 랭킹
+                        </button>
                     <button 
                         onClick={() => setCurrentView('stats')}
                         style={{ padding: '8px 12px', background: '#f1c40f', color: 'white', border:'none', borderRadius:'5px', cursor:'pointer', fontWeight:'bold' }}
                     >
                         📊 통계
                     </button>
+                  </>
                 )}
                 
                 <span style={{color: '#555'}}><b>{currentUser.nickname}</b>님</span>
                 <button onClick={handleLogout} style={{padding: '5px 10px', fontSize: '0.8em', background: '#e74c3c', color: 'white', border:'none', borderRadius:'5px', cursor:'pointer'}}>로그아웃</button>
             </div>
         ) : (
-             currentView !== 'login' && <button onClick={() => setCurrentView('login')} style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', background: '#3498db', color: 'white', cursor: 'pointer' }}>로그인</button>
+             null
         )}
       </header>
       
