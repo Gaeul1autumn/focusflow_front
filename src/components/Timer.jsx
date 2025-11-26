@@ -71,6 +71,19 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
   const [hideTimeDisplay, setHideTimeDisplay] = useState(false);
   const initialTimeRef = useRef(focusTime);
 
+  const [isMuted, setIsMuted] = useState(false);
+  const isProcessingRef = useRef(false);
+
+  // 종료시 효과음 재생 함수
+  const playSound = useCallback(() => {
+    if (isMuted) return; // 음소거면 실행 안 함
+
+    // (예시: 맑은 알림음 URL)
+    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    audio.volume = 0.5; // 볼륨 조절 (0.0 ~ 1.0)
+    audio.play().catch(e => console.log("오디오 재생 오류(브라우저 정책):", e));
+  }, [isMuted]);
+
   // 작업 또는 설정 변경 시 리셋
   useEffect(() => {
     setIsActive(false);
@@ -78,6 +91,7 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
     setSecondsLeft(focusTime);
     initialTimeRef.current = focusTime;
     setSessionCount(0);
+    isProcessingRef.current = false;
   }, [currentFocusTask?.id, focusTime, shortBreak, longBreak, sessionCycle]);
 
 // ✨ useCallback 적용
@@ -102,17 +116,23 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
     setIsFocusing(true);
     setSecondsLeft(focusTime);
     initialTimeRef.current = focusTime;
+    isProcessingRef.current = false;
     setSessionCount(0);
   }, [focusTime]);
 
   // 시간 종료 시 처리 (휴식/집중 전환)
   // ✨ useCallback 적용
   const handleTimeUp = useCallback(() => {
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+
     const wasFocusing = isFocusing;
     const newCount = wasFocusing ? sessionCount + 1 : sessionCount;
 
+    triggerScreenFlash(); // 함수 호출해서 깜빡임 효과 주기
+    playSound();// 효과음 재생하기
+    
     if (wasFocusing) {
-      triggerScreenFlash(); // 함수 호출해서 깜빡임 효과 주기
 
       setSessionCount(newCount);
       onSessionComplete(currentFocusTask.id);
@@ -133,7 +153,10 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
     }
 
     setIsFocusing(!wasFocusing);
-    setTimeout(() => setIsActive(true), 150);
+    setTimeout(() => {
+        setIsActive(true);
+        isProcessingRef.current = false; 
+    }, 150);
   }, [
     isFocusing, 
     sessionCount, 
@@ -155,6 +178,8 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
 
 
   const handleMiddleCompletion = useCallback(() => {
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
 
     let secondsToAdd = 0;
     let totalCompletedSeconds = sessionCount * focusTime;
@@ -257,21 +282,31 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
     <div className="timer-box">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <h2>{currentFocusTask.title}</h2>
-        {/* ✨ 숨김/표시 토글 버튼 */}
-        <button 
-          onClick={() => setHideTimeDisplay(prev => !prev)}
-          style={{ 
-            background: 'none', 
-            border: '1px solid #ccc', 
-            borderRadius: '5px', 
-            padding: '5px 10px', 
-            cursor: 'pointer',
-            fontSize: '12px',
-            color: '#555'
-          }}
-        >
-          {hideTimeDisplay ? '시간 표시' : '시간 숨김'}
-        </button>
+        {/* ✨ [수정] 버튼들을 세로로 쌓기 위한 컨테이너 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            {/* 시간 표시/숨김 버튼 */}
+            <button 
+              onClick={() => setHideTimeDisplay(prev => !prev)}
+              style={{ 
+                background: 'none', border: '1px solid #ccc', borderRadius: '5px', padding: '5px 10px', 
+                cursor: 'pointer', fontSize: '12px', color: '#555', width: '80px'
+              }}
+            >
+              {hideTimeDisplay ? '시간 표시' : '시간 숨김'}
+            </button>
+
+            {/* ✨ [추가] 소리 켜기/끄기 버튼 */}
+            <button 
+              onClick={() => setIsMuted(prev => !prev)}
+              style={{ 
+                background: 'none', border: '1px solid #ccc', borderRadius: '5px', padding: '5px 10px', 
+                cursor: 'pointer', fontSize: '12px', color: isMuted ? '#e74c3c' : '#2ecc71', width: '80px',
+                fontWeight: 'bold'
+              }}
+            >
+              {isMuted ? '🔇 소리 끔' : '🔊 소리 켬'}
+            </button>
+        </div>
       </div>
       <p className="session-info">세션: {sessionCount} / {sessionCycle} 회</p>
 
