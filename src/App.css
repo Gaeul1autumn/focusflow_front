@@ -311,7 +311,7 @@ h1 {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: white; /* 번쩍이는 색상 (흰색 추천) */
+  background-color: rgb(0, 0, 0); /* 번쩍이는 색상 (흰색 추천) */
   z-index: 99999; /* 모든 요소보다 위에 */
   pointer-events: none; /* 클릭 방해하지 않게 */
   animation: flash-animation 0.6s ease-out forwards;

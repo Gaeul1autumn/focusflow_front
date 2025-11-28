@@ -33,18 +33,33 @@ const showAutoDismissMessage = (message) => {
   toast.style.transform = 'translateX(-50%)';
   toast.style.background = '#333';
   toast.style.color = '#fff';
-  toast.style.padding = '12px 20px';
-  toast.style.borderRadius = '8px';
-  toast.style.fontSize = '14px';
+
+  toast.style.padding = '20px 40px'; // ✨ 안쪽 여백을 2배로 늘림 (기존 12px 20px)
+  toast.style.fontSize = '20px';     // ✨ 글자 크기를 키움 (기존 14px -> 20px)
+  toast.style.fontWeight = 'bold';   // ✨ 글자를 굵게 해서 더 잘 보이게 함
+  toast.style.minWidth = '350px';    // ✨ 최소 너비 설정 (메시지가 짧아도 박스는 큼직하게)
+  toast.style.textAlign = 'center';  // ✨ 텍스트 가운데 정렬
+  
+  toast.style.borderRadius = '12px'; // 모서리도 조금 더 둥글게 (기존 8px)
+  toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)'; // 그림자 추가로 입체감
   toast.style.zIndex = '9999';
   toast.style.opacity = '0';
-  toast.style.transition = 'opacity 0.3s ease';
+  toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease'; // 등장 애니메이션 부드럽게
+  
   document.body.appendChild(toast);
-  setTimeout(() => (toast.style.opacity = '1'), 10);
+  
+  // 등장 애니메이션 (살짝 위로 떠오르는 효과 추가)
+  setTimeout(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(-10px)';
+  }, 10);
+
   setTimeout(() => {
     toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(0)'; // 사라질 때 다시 내려감
     setTimeout(() => document.body.removeChild(toast), 300);
-  }, 3000);
+  }, 2000);
+
 };
 
 // 세션 완료시 화면 깜빡임을 위한 function
