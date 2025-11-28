@@ -109,6 +109,39 @@ function App() {
   };
 
   // ---------------------------------------------------------
+  // ✨ [목록 초기화] DB + 로컬 + 화면 싹 비우기
+  // ---------------------------------------------------------
+  const handleResetList = async () => {
+    if (!currentUser) return;
+
+    // 실수 방지를 위한 확인 창
+    if (!window.confirm("정말 모든 할 일 목록을 초기화하시겠습니까?\n(통계 기록은 유지됩니다)")) {
+        return;
+    }
+
+    try {
+        // 1. DB 데이터 삭제 요청
+        await fetch(`http://localhost:8080/api/tasks/user/${currentUser.username}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        // 2. 로컬 스토리지 삭제
+        localStorage.removeItem(`completedTasks_${currentUser.username}`);
+
+        // 3. 화면 비우기
+        setTasks([]);
+        setCurrentFocusTask(null); // 타이머에 걸린 작업도 해제
+
+        alert("모든 목록이 초기화되었습니다! ✨");
+
+    } catch (error) {
+        console.error("초기화 실패:", error);
+        alert("초기화 중 오류가 발생했습니다.");
+    }
+  };
+
+  // ---------------------------------------------------------
   // [헬퍼] 로컬 스토리지 저장 (UI 유지용)
   // ---------------------------------------------------------
   const saveToLocal = (task, username) => {
@@ -316,7 +349,28 @@ function App() {
 
           <div className="main-content-area">
             <div className="task-list-section">
-              <h2>할 일 목록</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', paddingBottom: '10px' }}>
+                  <h2 style={{ margin: 0 }}>할 일 목록</h2>
+                  {/* ✨ 초기화 버튼 추가 */}
+                      <button 
+                        onClick={handleResetList}
+                        style={{
+                            padding: '6px 12px',
+                            fontSize: '13px',
+                            color: '#e74c3c', // 빨간색 (경고 느낌)
+                            border: '1px solid #e74c3c',
+                            borderRadius: '20px',
+                            background: 'none',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = '#e74c3c'; e.currentTarget.style.color = 'white'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#e74c3c'; }}
+                      >
+                        🗑️ 목록 초기화
+                      </button>
+              </div>
               <div className="task-list">
                 {tasks.map(task => (
                     <div key={task.id} className={`task-item ${task.isFocusing ? 'focusing' : ''} ${task.completed ? 'completed-task' : ''}`} style={{ opacity: task.completed ? 0.6 : 1 }}>

@@ -308,7 +308,7 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
             </button>
         </div>
       </div>
-      <p className="session-info">세션: {sessionCount} / {sessionCycle} 회</p>
+      <p className="session-info">세션: {sessionCount+1} / {sessionCycle} 회</p>
 
       <p className="timer-mode">
         {isFocusing 
@@ -350,7 +350,17 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
         <button onClick={() => setIsActive(!isActive)}>
           {isActive ? '일시정지' : (secondsLeft === initialTimeRef.current && !isActive) ? '시작' : '계속'}
         </button>
-        <button onClick={handleReset} disabled={!isActive && secondsLeft === initialTimeRef.current && sessionCount === 0}>
+        <button 
+            onClick={handleReset} 
+            // isActive가 true(작동 중)이면 무조건 비활성화 (클릭 불가)
+            // OR 이미 초기화된 상태(세션0, 시간꽉참)여도 비활성화
+            disabled={isActive || (sessionCount === 0 && secondsLeft === focusTime)}
+            style={{ 
+                // (선택 사항) 비활성화일 때 마우스 커서 변경 등 스타일 추가 가능
+                cursor: (isActive || (sessionCount === 0 && secondsLeft === focusTime)) ? 'not-allowed' : 'pointer',
+                opacity: (isActive || (sessionCount === 0 && secondsLeft === focusTime)) ? 0.5 : 1
+            }}
+        >
           주기 초기화
         </button>
         <button onClick={handleMiddleCompletion}>
