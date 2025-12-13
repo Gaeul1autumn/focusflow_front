@@ -5,6 +5,7 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import StatsPage from './components/StatsPage';
 import RankingPage from './components/RankingPage';
+import API_BASE_URL from './config';
 
 function App() {
   // 로그인한 유저 정보 (null이면 비로그인)

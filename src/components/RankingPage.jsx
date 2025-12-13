@@ -1,5 +1,6 @@
 // src/components/RankingPage.jsx
 import React, { useEffect, useState } from 'react';
+import API_BASE_URL from '../config';
 
 function RankingPage({ onBack }) {
   const [activeTab, setActiveTab] = useState('daily'); // 'daily' or 'weekly'

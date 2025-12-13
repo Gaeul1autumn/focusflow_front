@@ -1,5 +1,6 @@
 // LoginPage.jsx
 import React, { useState } from 'react'; // ✨ useState import 필수!
+import API_BASE_URL from '../config';
 
 function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
   const [username, setUsername] = useState('');
