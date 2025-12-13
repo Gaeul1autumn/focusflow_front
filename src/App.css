@@ -1,319 +1,493 @@
-/* Google Font - Inter */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+/* App.css - FocusFlow Blue Theme */
+
+/* 1. 폰트 및 컬러 변수 설정 */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+:root {
+  /* ✨ 메인 컬러: FocusFlow Blue & Mint */
+  --primary-color: #538be4;   /* 맑은 파랑 */
+  --primary-dark: #3d74cd;    /* 진한 파랑 (버튼 호버용) */
+  --secondary-color: #00cec9; /* 상큼한 민트 */
+  
+  /* 배경: 아주 깨끗한 화이트~블루 그라데이션 */
+  --bg-gradient: linear-gradient(to top, #dfe9f3 0%, #ffffff 100%);
+  --app-bg: rgba(255, 255, 255, 0.95); /* 거의 불투명한 흰색 유리 */
+  
+  /* 텍스트 */
+  --text-main: #2c3e50; /* 짙은 네이비 */
+  --text-sub: #7f8c8d;  /* 차분한 회색 */
+  
+  /* 그림자 & 라운드 */
+  --shadow-soft: 0 10px 30px rgba(52, 152, 219, 0.08); /* 파란빛이 도는 그림자 */
+  --shadow-hover: 0 15px 35px rgba(52, 152, 219, 0.2);
+  --border-radius: 24px;
+}
 
 body {
-    background-color: #f4f7f9;
-    font-family: 'Inter', sans-serif;
-    
-    /* ✨ 추가된 부분: 화면 정중앙 정렬을 위한 핵심 코드 */
-    margin: 0;
-    min-height: 100vh; /* 화면 전체 높이 사용 */
-    display: flex;
-    justify-content: center; /* 가로 중앙 정렬 */
+  margin: 0;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* 2. 앱 컨테이너 */
 .app-container {
-  max-width: 1200px;
-  margin: 30px auto;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: fit-content;
+  min-width: 95%;
+  max-width: 1400px;
+  margin: 40px 20px;
+  padding: 50px;
+  
+  background-color: var(--app-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  
 }
 
-h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 30px;
+
+/* 3. 헤더 영역 */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.03); /* 아주 연한 구분선 */
 }
 
-/* ⭐️ 메인 컨텐츠 영역 (Task List와 Timer를 옆으로 배치) */
-.main-content-area {
-    display: flex;
-    gap: 30px;
+header h1 {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin: 0;
+  cursor: pointer;
+  
+  /* ✨ 로고 텍스트 그라데이션 (블루 -> 민트) */
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.task-list-section {
-    flex: 1;
-    min-width: 300px;
+/* 4. 버튼 공통 스타일 */
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* -------------------- 설정 입력 -------------------- */
+button:active {
+  transform: scale(0.96);
+}
+
+/* 5. 설정 입력 영역 */
 .settings-input-container {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
-    padding: 15px;
-    background-color: #ecf0f1;
-    border-radius: 8px;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 40px;
+  padding: 25px;
+  background: #f0f4f8; /* 쿨 그레이 배경 */
+  border-radius: 16px;
+  border: 1px solid #eef2f7;
 }
+
 .settings-input-container label {
-    font-size: 0.9em;
-    font-weight: 600;
-    color: #34495e;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  color: var(--text-sub);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
+
 .settings-input-container input {
-    width: 50px;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-align: center;
+  width: 60px;
+  padding: 10px;
+  border: 2px solid #dfe6e9;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary-color);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
+.settings-input-container input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
 
-/* -------------------- Task Input -------------------- */
+/* 6. 할 일 입력창 */
 .task-input-section {
   display: flex;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 40px;
 }
 
 .task-input-section input {
-  flex-grow: 1;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px 0 0 8px;
-  font-size: 1em;
+  flex: 1;
+  padding: 18px 25px;
+  border: 2px solid #ecf0f1;
+  border-radius: 50px;
+  background: #fff;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.task-input-section input:focus {
+  border-color: var(--primary-color);
+  background: #fff;
 }
 
 .task-input-section button {
-  padding: 12px 20px;
-  background-color: #2ecc71;
+  padding: 0 35px;
+  border-radius: 50px;
+  background: var(--primary-color);
   color: white;
-  border: none;
-  border-radius: 0 8px 8px 0;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.2s;
-}
-.task-input-section button:hover {
-    background-color: #27ae60;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
 }
 
-/* -------------------- Task List -------------------- */
+.task-input-section button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* 7. 메인 콘텐츠 레이아웃 */
+.main-content-area {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+@media (min-width: 900px) {
+  .main-content-area {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .task-list-section { flex: 3.5; min-width: 350px; }
+  .timer-section { flex: 6.5; position: sticky; top: 30px; min-width: 500px; }
+}
+
+/* 8. 할 일 목록 */
 .task-list-section h2 {
-    color: #34495e;
-    /* border-bottom: 2px solid #eee; */
-    padding-bottom: 5px;
-    margin-top: 0;
+  font-size: 18px;
+  color: var(--text-sub);
+  margin-bottom: 20px;
+  font-weight: 800;
+  border-bottom: none; /* 밑줄 제거 */
 }
 
 .task-list {
-  background-color: #fcfcfc;
-  border: 1px solid #eee;
-  padding: 0;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  /* ✨ [추가] 스크롤 기능 핵심 코드 */
+  max-height: 500px; /* 높이가 이보다 커지면 스크롤 생김 (타이머 높이와 비슷하게 맞춤) */
+  overflow-y: auto;  /* 세로 스크롤 허용 */
+  padding-right: 10px; /* 스크롤바와 내용 사이 여백 */
+  padding-bottom: 5px; /* 하단 여백 */
 }
+
+/* ✨ [추가] 커스텀 스크롤바 디자인 (크롬, 사파리, 엣지용) */
+.task-list::-webkit-scrollbar {
+  width: 8px; /* 스크롤바 너비 */
+}
+.task-list::-webkit-scrollbar-track { background: transparent; }
+.task-list::-webkit-scrollbar-thumb { background-color: #dfe6e9; border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+.task-list::-webkit-scrollbar-thumb:hover { background-color: var(--primary-light); }
+
 
 .task-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  border-bottom: 1px solid #f0f0f0;
-  transition: background-color 0.2s;
+  padding: 20px 25px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #ecf0f1;
+  border-left: 5px solid transparent;
 }
 
-.task-item:last-child {
-  border-bottom: none;
+.task-item:hover {
+  transform: translateY(-2px);
+  border-color: #7ab5f8;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
 
 .task-item.focusing {
-    background-color: #fbe6e6;
-    border-left: 5px solid #e74c3c;
+  border-left-color: #7ab5f8;
+  background: #f0f8ff; /* 아주 연한 파란색 배경 */
 }
 
-.task-sessions {
-    font-weight: 600;
-    color: #e74c3c;
-    margin-right: 15px;
+.task-item.completed-task {
+  opacity: 0.5;
+  background: #f9f9f9;
+  box-shadow: none;
 }
+
 .task-title {
-    flex-grow: 1;
+  flex: 1; 
+  
+  /* ✨ [핵심 수정] 제목과 오른쪽 덩어리들 사이는 넓게 벌림 */
+  margin-right: 20px; 
+  
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 16px;
+  
+  /* 줄바꿈 허용 */
+  word-break: break-word; 
+  line-height: 1.4;
 }
 
 .task-item button {
-    padding: 8px 12px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.2s;
+  white-space: nowrap; 
+  flex-shrink: 0;
+  
+  /* 버튼 왼쪽 여백 제거 (세션 횟수의 margin-right로 조절함) */
+  margin-left: 0; 
+
+  background-color: #538be4; /* 진한 파란색 배경 */
+  color: white;                           /* 흰색 글자 */
+  
+  border: none;
+  padding: 8px 16px;       /* 버튼 크기 살짝 키움 */
+  border-radius: 20px;     /* 둥근 모양 */
+  font-weight: 700;        /* 글자 굵게 */
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2); /* 그림자 추가로 입체감 */
+
 }
+
 .task-item button:hover {
-    background-color: #2980b9;
+  background-color: var(--primary-dark); /* 더 진한 파란색 */
+  transform: translateY(-2px);           /* 살짝 위로 떠오름 */
+  box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
 }
 
-
-/* -------------------- Timer Section -------------------- */
-
-.timer-section {
-    flex: 1;
-    text-align: center;
-    border: 2px solid #3498db;
-    border-radius: 12px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    min-height: 400px;
+.task-sessions {
+  white-space: nowrap; 
+  flex-shrink: 0;
+  
+  /* ✨ [핵심 수정] 버튼과 가깝게 붙이기 위해 오른쪽 여백을 작게 줌 */
+  margin-right: 6px; 
+  
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary-color);
+  background: rgba(52, 152, 219, 0.1);
+  padding: 6px 12px;
+  border-radius: 20px;
 }
 
-.timer-box h2 {
-    color: #34495e;
-    margin-top: 0;
-}
-
-.session-info {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: #2980b9;
-}
-
-.timer-mode {
-    font-weight: bold;
-    color: #e74c3c;
-    font-size: 1.2em;
+/* 9. 타이머 섹션 디자인 */
+.timer-box {
+  background: white;
+  border-radius: 30px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(52, 152, 219, 0.12);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #ecf0f1;
+  
+  /* ✨ [추가] 타이머가 커져서 위아래 여백을 좀 더 줍니다 */
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .timer-box.no-task {
-    background-color: #ecf0f1;
-    border-style: dashed;
-    color: #7f8c8d;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  min-height: auto; /* 높이 제한 해제 (내용물만큼만 작아짐) */
+  padding: 60px 40px; /* 적당한 여백 */
+  justify-content: center; /* 내용 중앙 정렬 */
+  gap: 20px;
+  
+  /* 배경 빛 효과 숨김 (깔끔하게) */
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
-/* ⭐️ Flex 레이아웃 (숫자 타이머와 원형 타이머를 옆으로 배치) */
+/* no-task 상태일 때 배경 빛 효과 숨기기 */
+.timer-box.no-task::before {
+  display: block; /* 숨김 해제 */
+  
+  /* 작은 박스에 맞게 위치/크기 조정 */
+  width: 250px; 
+  height: 250px;
+  top: -100px;   /* 위쪽에서 은은하게 내려오도록 */
+  right: -50px;  /* 오른쪽 모서리에 걸치게 */
+  opacity: 0.1;  /* 조금 더 연하게 */
+  filter: blur(60px);
+}
+
+/* 배경 빛 효과 (블루 & 민트 오로라) */
+.timer-box::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 250px; height: 250px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.12;
+  z-index: 0;
+  pointer-events: none; /* 클릭 통과 */
+}
+
+.timer-box > * {
+  position: relative;
+  z-index: 1;
+}
+
+.timer-box h2 {
+  font-size: 26px;
+  margin-bottom: 5px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.session-info {
+  font-size: 15px;
+  color: var(--text-sub);
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.timer-mode {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 .timer-display-flex {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 40px;
-    margin-top: 20px;
+  position: relative; /* 자식요소 absolute 배치를 위해 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 350px; /* 타이머 크기에 맞춰 높이 확보 */
+  margin: 20px 0;
 }
 
 .digital-time-display {
-    font-family: monospace;
-    font-size: 4em;
-    min-width: 200px;
-    font-weight: bold;
-    color: #2c3e50;
-    text-align: center;
-    line-height: 1;
+  position: absolute; /* 겹치기 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* 정확히 정중앙 */
+  
+  font-family: 'Pretendard', sans-serif;
+  font-size: 5rem; /* 글자 크기 유지 */
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -3px;
+  z-index: 10; /* 원보다 위에 표시 */
 }
 
-.digital-time-display .current-mode-label {
-    font-size: 0.4em;
-    color: #7f8c8d;
-    margin-top: 5px;
-    font-weight: normal;
-}
+.current-mode-label { display: none; }
 
-
-/* -------------------- Circular Timer (SVG) -------------------- */
+/* SVG 타이머 스타일 */
 .circular-timer-container {
-  width: 400px;
-  height: 400px;
-  margin: auto; 
+  width: 450px;
+  height: 450px;
 }
 
+/* 기존 타이머 기능 유지를 위해 transform만 적용 */
 .circular-timer {
-  /* 프로그레스 바가 반시계 방향으로 줄어들게 (선택 사항) */
-  transform: rotateY(-180deg); 
   width: 100%;
   height: 100%;
+  transform: rotateY(-180deg);
 }
 
-/* -------------------- Controls -------------------- */
+/* 10. 타이머 컨트롤 버튼 */
 .timer-controls {
-    margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 40px;
 }
 
 .timer-controls button {
-    padding: 10px 20px;
-    margin: 0 10px;
-    font-size: 1em;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-.timer-controls button:first-child {
-    background-color: #3498db;
-    color: white;
+.timer-controls button:first-child { /* 시작 (메인 컬러) */
+  background: var(--primary-color);
+  color: white;
 }
 .timer-controls button:first-child:hover {
-    background-color: #2980b9;
+  background: var(--primary-dark);
+  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+  transform: translateY(-2px);
 }
 
-.timer-controls button:last-child {
-    background-color: #bdc3c7;
-    color: #2c3e50;
+.timer-controls button:nth-child(2) { /* 초기화 */
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  color: var(--text-sub);
+}
+.timer-controls button:nth-child(2):hover {
+  background: #f8f9fa;
+  color: var(--text-main);
+}
+
+.timer-controls button:last-child { /* 완료 (민트/그린 계열) */
+  background: #4fcd83; /* 로고와 어울리는 밝은 그린 */
+  color: white;
 }
 .timer-controls button:last-child:hover {
-    background-color: #95a5a6;
-}
-.timer-controls button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  background: #27ae60;
+  box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+  transform: translateY(-2px);
 }
 
-
-/* -------------------- Media Queries (Responsive Design) -------------------- */
-
-@media (max-width: 768px) {
-    .app-container {
-        padding: 15px;
-        margin: 10px;
-    }
-    
-    .main-content-area {
-        flex-direction: column; /* 모바일에서는 세로로 쌓음 */
-    }
-    
-    .task-list-section {
-        min-width: 100%;
-        margin-bottom: 20px;
-    }
-    
-    .timer-section {
-        min-height: auto;
-    }
-
-    .timer-display-flex {
-        flex-direction: column; /* 타이머 디스플레이도 세로로 쌓음 */
-        gap: 20px;
-    }
-
-    .digital-time-display {
-        font-size: 3em;
-    }
-}
-
-/*  화면 깜빡임 효과 */
-@keyframes flash-animation {
-  0% { opacity: 0; }
-  20% { opacity: 0.6; } /* 투명도 0.6 정도로 하얗게 번쩍! */
-  100% { opacity: 0; }
-}
-
+/* 11. 깜빡임 효과 (화이트) */
 .flash-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgb(0, 0, 0); /* 번쩍이는 색상 (흰색 추천) */
-  z-index: 99999; /* 모든 요소보다 위에 */
-  pointer-events: none; /* 클릭 방해하지 않게 */
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 99999;
+  pointer-events: none;
   animation: flash-animation 0.6s ease-out forwards;
 }
 
+@keyframes flash-animation {
+  0% { opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { opacity: 0; }
+}

@@ -26,7 +26,7 @@ function SignupPage({ onBack }) {
 
     // 2. ✨ 백엔드 API 호출 (회원가입 요청) //FIXME: 로컬 호스트 수정
     try {
-        const response = await fetch('http://localhost:8080/api/auth/signup', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json' 

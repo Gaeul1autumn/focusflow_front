@@ -10,7 +10,7 @@ function StatsPage({ currentUser, onBack }) {
 
     const fetchStats = async () => {
       try { //FIXME: 로컬 호스트 수정
-        const response = await fetch(`http://localhost:8080/api/stats/${currentUser.username}`, {
+        const response = await fetch(`${API_BASE_URL}/api/stats/${currentUser.username}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include' 
@@ -58,10 +58,10 @@ function StatsPage({ currentUser, onBack }) {
   const { today, weekly } = stats;
 
   return (
-    <div className="stats-page" style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', paddingBottom: '80px' }}>
+    <div className="stats-page" style={{ maxWidth: '700px', minWidth: 'min(90vw, 400px)', margin: '0 auto', padding: '20px', paddingBottom: '80px' }}>
       
-      <header style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', marginRight: '15px' }}>←</button>
+      <header style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '30px' }}>
+        <button onClick={onBack} style={{ position: 'absolute', left: 0, background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', marginRight: '15px' }}>←</button>
         <h2 style={{ margin: 0, color: '#2c3e50' }}>나의 집중 리포트 📊</h2>
       </header>
 

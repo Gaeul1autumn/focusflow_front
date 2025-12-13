@@ -28,6 +28,14 @@ function App() {
 
   const [settings, setSettings] = useState(defaultSettings);
 
+  // ✨ [추가] 오늘 날짜 포맷팅 (예: 2025년 11월 26일 수요일)
+  const todayDate = new Date().toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  });
+
   // ---------------------------------------------------------
   // 1. [초기화] 세션 확인 + 로컬 우선 로딩 + DB 병합 (속도 최적화)
   // ---------------------------------------------------------
@@ -52,7 +60,7 @@ function App() {
         }
 
         // B. [세션 체크] (백엔드 통신)
-        const sessionRes = await fetch('http://localhost:8080/api/auth/check-session', {
+        const sessionRes = await fetch(`${API_BASE_URL}/api/auth/check-session`, {
             method: 'GET',
             credentials: 'include'
         });
@@ -82,7 +90,7 @@ function App() {
 
         // E. [DB 데이터 로딩] (백그라운드에서 실행 후 병합)
         if (activeUser) {
-            const taskRes = await fetch(`http://localhost:8080/api/tasks/${activeUser}`, {
+            const taskRes = await fetch(`${API_BASE_URL}/api/tasks/${activeUser}`, {
                 credentials: 'include'
             });
             
@@ -119,7 +127,7 @@ function App() {
   // ---------------------------------------------------------
   const handleLogout = async () => {
     try {
-        await fetch('http://localhost:8080/api/auth/logout', { 
+        await fetch(`${API_BASE_URL}/api/auth/logout`, { 
             method: 'POST', credentials: 'include' 
         });
 
@@ -148,7 +156,7 @@ function App() {
     }
 
     try {
-        await fetch(`http://localhost:8080/api/tasks/user/${currentUser.username}`, {
+        await fetch(`${API_BASE_URL}/api/tasks/user/${currentUser.username}`, {
             method: 'DELETE',
             credentials: 'include'
         });
@@ -223,7 +231,7 @@ function App() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/tasks', {
+      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -272,7 +280,7 @@ function App() {
 
     // A. 통계 저장
     try {
-        await fetch(`http://localhost:8080/api/stats/${currentUser.username}/daily`, { 
+        await fetch(`${API_BASE_URL}/api/stats/${currentUser.username}/daily`, { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -287,7 +295,7 @@ function App() {
     if (isCycleFinished) {
         // DB 삭제 + 로컬 저장
         try {
-            await fetch(`http://localhost:8080/api/tasks/${taskId}`, { 
+            await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, { 
                 method: 'DELETE', credentials: 'include' 
             });
         } catch (e) { console.error(e); }
@@ -309,7 +317,7 @@ function App() {
         setCurrentFocusTask(prev => ({ ...prev, focusSessions: currentSessions }));
 
         try {
-            await fetch(`http://localhost:8080/api/tasks/${taskId}/session`, {
+            await fetch(`${API_BASE_URL}/api/tasks/${taskId}/session`, {
                 method: 'PATCH', credentials: 'include'
             });
         } catch (e) { console.error("세션 카운트 저장 실패", e); }
@@ -327,7 +335,7 @@ function App() {
     // A. 통계 저장
     if (totalSeconds > 0) {
         try {
-            await fetch(`http://localhost:8080/api/stats/${currentUser.username}/daily`, {
+            await fetch(`${API_BASE_URL}/api/stats/${currentUser.username}/daily`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -341,7 +349,7 @@ function App() {
 
     // B. DB 삭제
     try {
-        await fetch(`http://localhost:8080/api/tasks/${taskId}`, { 
+        await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, { 
             method: 'DELETE', credentials: 'include'
         });
     } catch (error) { console.error("삭제 실패:", error); }
@@ -421,13 +429,17 @@ function App() {
                   </button>
               </div>
               <div className="task-list">
-                {tasks.map(task => (
+                {[...tasks]
+                    .sort((a, b) => Number(a.completed) - Number(b.completed)) // 미완료(0) -> 완료(1) 순서 정렬
+                    .map(task => (
+                    
                     <div key={task.id} className={`task-item ${task.isFocusing ? 'focusing' : ''} ${task.completed ? 'completed-task' : ''}`} style={{ opacity: task.completed ? 0.6 : 1 }}>
                         <span className="task-title" style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>{task.title}</span>
                         <span className="task-sessions">🔥 {task.focusSessions || 0}</span>
                         {!task.completed && <button onClick={() => handleStartFocusing(task.id)}>{task.isFocusing ? '포커스 중' : '시작'}</button>}
                         {task.completed && <span>✅</span>}
                     </div>
+                    
                 ))}
               </div>
             </div>
@@ -446,10 +458,28 @@ function App() {
     }
   };
 
+  const isHomePage = currentView === 'home';
+
   return (
     <div className="app-container">
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 onClick={() => setCurrentView('home')} style={{ margin: 0, cursor: 'pointer' }}>FocusFlow 🚀</h1>
+        <div style={{ display: 'flex', flexDirection: isHomePage ? 'row' : 'column', alignItems: isHomePage ? 'baseline' : 'flex-start', gap: isHomePage ? '15px' : '5px'}}>
+            <h1 
+                onClick={() => setCurrentView('home')} 
+                style={{ margin: 0, cursor: 'pointer' }}
+            >
+                FocusFlow
+            </h1>
+            {/* 날짜 표시 */}
+            <span style={{ 
+                fontSize: '16px', 
+                color: '#636e72', // 부드러운 회색 (App.css 변수와 어울림)
+                fontWeight: '500',
+                letterSpacing: '-0.5px'
+            }}>
+                {todayDate}
+            </span>
+        </div>
         
         {currentUser ? (
             <div style={{display:'flex', gap:'10px', alignItems:'center'}}>

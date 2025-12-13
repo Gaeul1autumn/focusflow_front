@@ -12,7 +12,7 @@ function RankingPage({ onBack }) {
       try {
         // 탭에 따라 API 주소 변경
         const endpoint = activeTab === 'daily' ? 'daily' : 'weekly';
-        const response = await fetch(`http://localhost:8080/api/ranks/${endpoint}`, {
+        const response = await fetch(`${API_BASE_URL}/api/ranks/${endpoint}`, {
             credentials: 'include'
         });
         
@@ -55,9 +55,9 @@ function RankingPage({ onBack }) {
   };
 
   return (
-    <div className="ranking-page" style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-      <header style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', marginRight: '15px' }}>←</button>
+    <div className="ranking-page" style={{ maxWidth: '600px', minWidth: 'min(90vw, 400px)', margin: '0 auto', padding: '20px' }}>
+      <header style={{ position: 'relative', display: 'flex', alignItems: 'center', marginBottom: '20px',justifyContent: 'center'}}>
+        <button onClick={onBack} style={{ position: 'absolute', left: 0, background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', marginRight: '15px' }}>←</button>
         <h2 style={{ margin: 0, color: '#2c3e50' }}>명예의 전당 🏆</h2>
       </header>
 
