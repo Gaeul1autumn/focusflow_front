@@ -491,3 +491,17 @@ button:active {
   20% { opacity: 0.8; }
   100% { opacity: 0; }
 }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.button-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4); /* 연한 테두리 */
+  border-top: 2px solid white;               /* 진한 테두리 (돌아가는 부분) */
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;      /* 무한 회전 */
+}

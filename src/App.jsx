@@ -371,9 +371,30 @@ function App() {
   // 1. 로딩 중일 때 (깜빡임 방지용 스피너)
   if (isLoading) {
     return (
-      <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f4f7f9', flexDirection: 'column' }}>
-        <div style={{ fontSize: '40px', marginBottom: '20px' }}>🚀</div>
-        <div style={{ color: '#555', fontWeight: 'bold' }}>FocusFlow 로딩 중...</div>
+      <div className="app-container" style={{
+        /* ✨ [핵심] 카드 크기 강제 지정 (찌그러짐 방지) */
+        width: '350px',
+        minHeight: '300px', 
+        
+        /* 내용물 중앙 정렬 */
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '20px',
+        
+        /* 화면 정중앙에 오도록 여백 자동 조절 */
+        margin: '20vh auto' 
+      }}>
+        
+        {/* 텍스트 */}
+        <div style={{ 
+            color: '#2c3e50', 
+            fontWeight: '800', 
+            fontSize: '18px' 
+        }}>
+            FocusFlow 로딩 중...
+        </div>
       </div>
     );
   }

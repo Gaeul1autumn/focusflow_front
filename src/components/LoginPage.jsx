@@ -5,6 +5,7 @@ import API_BASE_URL from '../config';
 function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleLogin = async () => {
     // 유효성 검사 (빈 값 방지)
@@ -12,6 +13,9 @@ function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
       alert("아이디와 비밀번호를 입력해주세요.");
       return;
     }
+
+    if (isLoggingIn) return;
+    setIsLoggingIn(true);
 
     try {//FIXME: 로컬호스트 수정
         const response = await fetch(`${API_BASE_URL}/api/auth/login`, { 
@@ -31,6 +35,7 @@ function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
     } catch (error) {
         console.error(error);
         alert('서버 연결 오류');
+        setIsLoggingIn(false);
     }
   };
 
@@ -65,13 +70,36 @@ function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
       
       <button 
         onClick={handleLogin} // ✨ 클릭 이벤트 연결
+        disabled={isLoggingIn}
         style={{ 
-            width: '100%', padding: '12px', backgroundColor: '#3498db', 
-            color: 'white', border: 'none', borderRadius: '8px', 
-            fontSize: '16px', cursor: 'pointer', fontWeight: 'bold' 
-        }}
+          width: '100%', 
+          padding: '12px', 
+          /* 로딩 중일 땐 약간 연한 파란색, 평소엔 진한 파란색 */
+          backgroundColor: isLoggingIn ? '#85c1e9' : '#3498db', 
+          color: 'white', 
+          border: 'none', 
+          borderRadius: '8px', 
+          fontSize: '16px', 
+          /* 로딩 중일 땐 금지 커서, 평소엔 손가락 커서 */
+          cursor: isLoggingIn ? 'not-allowed' : 'pointer', 
+          fontWeight: 'bold',
+          
+          /* ✨ 스피너와 글자 정렬을 위한 추가 스타일 */
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '10px' 
+      }}
       >
-        로그인 하기
+        {/* ✨ 조건부 렌더링: 로딩 중이면 스피너 표시, 아니면 원래 텍스트 */}
+        {isLoggingIn ? (
+          <>
+            <div className="button-spinner"></div>
+            <span>로그인 중...</span>
+          </>
+        ) : (
+          "로그인 하기"
+        )}
       </button>
       
       <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
