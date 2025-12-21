@@ -31,6 +31,7 @@ function LoginPage({ onBack, onGoSignup, onLoginSuccess }) {
             onLoginSuccess({ username: username, nickname: data.nickname });
         } else {
             alert('로그인 실패: 아이디나 비밀번호를 확인하세요.');
+            setIsLoggingIn(false);
         }
     } catch (error) {
         console.error(error);
