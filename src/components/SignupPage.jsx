@@ -9,6 +9,8 @@ function SignupPage({ onBack }) {
     nickname: ''
   });
 
+  const [isSigningUp, setIsSigningUp] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -24,6 +26,8 @@ function SignupPage({ onBack }) {
       alert('비밀번호가 일치하지 않습니다.');
       return;
     }
+
+    setIsSigningUp(true);
 
     // 2. ✨ 백엔드 API 호출 (회원가입 요청) //FIXME: 로컬 호스트 수정
     try {
@@ -47,11 +51,13 @@ function SignupPage({ onBack }) {
             // 실패 시 (예: 중복된 아이디 등)
             const errorMsg = await response.text();
             alert(`회원가입 실패: ${errorMsg}`);
+            setIsSigningUp(false);
         }
 
     } catch (error) {
         console.error("회원가입 에러:", error);
         alert('서버 연결에 실패했습니다. 백엔드가 실행 중인지 확인해주세요.');
+        setIsSigningUp(false);
     }
   };
 
@@ -96,20 +102,35 @@ function SignupPage({ onBack }) {
 
       <button 
         onClick={handleSubmit}
+        disabled={isSigningUp} // 로딩 중 클릭 금지
         style={{ 
           marginTop: '30px', 
           width: '100%', 
           padding: '12px', 
-          backgroundColor: '#2ecc71', 
+          // 로딩 중이면 연한 초록색(#aed6b1), 평소엔 진한 초록색(#2ecc71)
+          backgroundColor: isSigningUp ? '#aed6b1' : '#2ecc71', 
           color: 'white', 
           border: 'none', 
           borderRadius: '8px',
           fontSize: '16px',
-          cursor: 'pointer',
-          fontWeight: 'bold'
+          // 로딩 중이면 금지 커서, 평소엔 손가락 커서
+          cursor: isSigningUp ? 'not-allowed' : 'pointer',
+          fontWeight: 'bold',
+          // 내용물 정렬 (스피너와 글자)
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '10px'
         }}
       >
-        가입하기
+        {isSigningUp ? (
+          <>
+            <div className="button-spinner"></div> {/* App.css에 정의된 스피너 */}
+            <span>가입 중...</span>
+          </>
+        ) : (
+          "가입하기"
+        )}
       </button>
       
       <button 
