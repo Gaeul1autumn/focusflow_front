@@ -87,17 +87,22 @@ function Timer({ currentFocusTask, onSessionComplete, settings, onManualComplete
   const initialTimeRef = useRef(focusTime);
 
   const [isMuted, setIsMuted] = useState(false);
+  const isMutedRef = useRef(isMuted);
   const isProcessingRef = useRef(false);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
 
   // 종료시 효과음 재생 함수
   const playSound = useCallback(() => {
-    if (isMuted) return; // 음소거면 실행 안 함
+    if (isMutedRef.current) return; // 음소거면 실행 안 함
 
     // (예시: 맑은 알림음 URL)
     const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     audio.volume = 0.5; // 볼륨 조절 (0.0 ~ 1.0)
     audio.play().catch(e => console.log("오디오 재생 오류(브라우저 정책):", e));
-  }, [isMuted]);
+  }, []);
 
   // 작업 또는 설정 변경 시 리셋
   useEffect(() => {
