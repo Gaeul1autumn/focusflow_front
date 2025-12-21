@@ -394,6 +394,7 @@ function App() {
             fontSize: '18px' 
         }}>
             FocusFlow 로딩 중...
+            최초 접속시에는 많은 시간이 소요될 수도 있습니다.
         </div>
       </div>
     );
